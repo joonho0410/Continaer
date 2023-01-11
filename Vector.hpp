@@ -123,7 +123,7 @@ namespace	ft
 					//throw error
 				}
 				_Destroy(begin().base(), end().base());
-				//_M_allocate(__begin_, __end_cap_ - __begin_);
+				_M_deallocate(__begin_, __end_cap_ - __begin_);
 				__begin_ = _new_start.base();
 				__end_ = _new_end.base();
 				__end_cap_ = _new_start.base() + _len;
@@ -136,17 +136,19 @@ namespace	ft
 		void 
 		_M_initialize_aux(_Integer __n, _Integer __value, true_type)
 		{
+			std::cout << "_M_initialze_aus true_type " << std::endl;
 			__begin_ = _M_allocate(__n);
 			__end_ = __begin_ + __n;
 			__end_cap_ = __begin_ + __n; 
 			for (pointer temp = __begin_; temp != __end_; ++temp)
-				alloc.allocate(temp, __value);
+				alloc.construct(temp, __value);
 		}
 
 		template<class _InputIterator>
 		void
 		_M_initialize_aux(_InputIterator __first, _InputIterator __last, false_type)
 		{
+			std::cout << "_M_initialze_aus false_type " << std::endl;
 			typedef typename ft::iterator_traits<_InputIterator>::iterator_category _IterCategory;
 			_M_range_initialize(__first, __last, _IterCategory());
 		}
@@ -171,30 +173,75 @@ namespace	ft
 			__end_ = std::uninitialized_copy(__first, __last, __begin_);
 		}
 
-		//_M_range_insert
-		//마찬가지로 iterator_tag에 따라서 2가지로 분류.
-		template <class _InputIterator>
-		void _M_range_insert(iterator __pos,
-							_InputIterator __first, _InputIterator __last,
-							input_iterator_tag);
-
-		template <class _ForwardIterator>
-		void _M_range_insert(iterator __pos,
-							_ForwardIterator __first, _ForwardIterator __last,
-							forward_iterator_tag);
-
+		// pos ~ count개를 val을 집어넣는다.
 		void _M_fill_insert(const_iterator pos, size_type count, const T& val)
 		{
-			(void)pos;
-			(void)count;
-			(void)val;
-			if(capacity() >= size() + count) // not reallocation just destroy; 
+			if (count != 0)
 			{
-
+				if(size_type(__end_cap_ - __end_) >= count) //capacity 가 충분할 경우.
+				{
+					T val_copy = val;
+					const size_type _elems_after = end() - pos; //pos이후의 원소의 갯수.
+					iterator old_end(__end_);
+					if (_elems_after > count)
+					{
+						uninitialized_copy(__end_ - count, __end_, __end_);
+						__end_ += count;
+						std::copy_backward(pos, old_end - count, old_end);
+						std::fill(pos, pos + count, val_copy);// what is fill ?
+					}
+					else
+					{
+						std::uninitialized_fill_n(__end_, count - _elems_after, val_copy);// what is uninitialized_fill_n ?
+						__end_ += count - _elems_after; // ?
+						uninitialized_copy(pos, old_end, __end_);
+						__end_ += _elems_after;
+						std::fill(pos, old_end, val_copy);
+					}
+				}
+				else
+				{
+					const size_type _old_size = size();
+					size_type temp = _old_size > count ? _old_size : count;
+					const size_type _len = _old_size + temp;
+					iterator _new_start(_M_allocate(_len));
+					iterator _new_end(_new_start);//?
+					try
+					{
+						_new_end = uninitialized_copy(iterator(__begin_), pos, _new_start.base());
+						_new_end = std::uninitialized_fill_n(_new_end, count, val);
+						_new_end = uninitialized_copy(pos, iterator(__end_), _new_end.base());//마지막에 넣는경우 그대로 _new_end를 반환.
+					}
+					catch(...) 
+					{
+						_Destroy(_new_start.base(), _new_end.base());
+						_M_deallocate(_new_start.base(), _len);
+						//throw error
+					}
+					_Destroy(begin().base(), end().base());
+					_M_deallocate(__begin_, __end_cap_ - __begin_);
+					__begin_ = _new_start.base();
+					__end_ = _new_end.base();
+					__end_cap_ = _new_start.base() + _len;
+				}
 			}
-			else // reallocation
-			{
+		}
 
+		template <class _Integer>
+		void _M_insert_dispatch(iterator _pos, _Integer _n, _Integer _val, true_type)
+		{ 
+			std::cout << "this is integer" << std::endl;
+			_M_fill_insert(_pos, static_cast<size_type>(_n), static_cast<T>(_val));
+		}
+
+		template <class _Iter>
+		void _M_insert_dispatch(iterator _pos, _Iter _first, _Iter _last, false_type)
+		{ 
+			std::cout << "this is Iter" << std::endl;
+			for (; _first != _last; ++_first)
+			{
+				_pos = insert(_pos, *_first);
+				++_pos;
 			}
 		}
 
@@ -285,12 +332,14 @@ namespace	ft
 			}
 
 			template< class InputIt >
-			vector( InputIt first, InputIt last, typename ft::enable_if<ft::is_integral< InputIt >::value, int>::type)
+			vector( InputIt first, InputIt last, const Allocator& alloc2 = Allocator() )
 			{
-				(void) alloc;
+				(void) alloc2;
+				std::cout << " iter , iter constructor" << std::endl;
 				typedef typename ft::is_integral< InputIt >::type type;
 				_M_initialize_aux(first, last, type());		
 			}
+
 			vector( const vector<T, Allocator>& other )
 			{
 				alloc = Allocator();
@@ -389,8 +438,9 @@ namespace	ft
 			void 		clear()
 			{ erase(begin(), end()); }
 
-			iterator 	insert( const_iterator pos, const T& value)
+			iterator 	insert( iterator pos, const T& value) //o
 			{
+				std::cout << "pos , val" << std::endl;
 				size_type __n = pos - begin();
 				if (__end_ != __end_cap_ && pos == end())//eqaul push_back()
 				{
@@ -398,25 +448,25 @@ namespace	ft
 					++ __end_;
 				}
 				else
-					_M_insert_aux(iterator(pos), value);// need _M_insert_aux;
+					_M_insert_aux( pos, value);// need _M_insert_aux;
 				return begin() + __n;
 			}
 
-			iterator 	insert( const_iterator pos, size_type count, const T& value)
+			iterator 	insert( iterator pos, size_type count, const T& value) //o
 			{
+				std::cout << "insert iter, size_type, value  " << std::endl;
 				_M_fill_insert(pos, count, value);
+				return pos; //temp
 			}
 
 			template< class InputIt >
-			iterator 	insert( const_iterator pos, InputIt first, InputIt last)
+			iterator 	insert( iterator pos, InputIt first, InputIt last) //o
 			{
-				(void)pos;
-				(void)first;
-				(void)last;
-				//typedef typename ft::is_integral<InputIt>::type type; // ?
+				std::cout << "insert  iter, iter,  iter " << std::endl;
+				typedef typename ft::is_integral< InputIt >::type type;
 				//_M_insert_dispatch(pos, first, last, type());
 
-				return iterator(__begin_); //need change
+				return iterator(__begin_); //s
 			}
 			
 			iterator 	erase( iterator pos )
@@ -426,8 +476,8 @@ namespace	ft
 				-- __end_;
 				_Destroy(__end_);
 				return pos;
-			
 			}
+
 			iterator	erase( iterator first, iterator last)
 			{
 				iterator __i(copy(last, end(), first));

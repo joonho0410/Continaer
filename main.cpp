@@ -17,10 +17,10 @@
 
 int main()
 {
-    //ft::vector<int> a(2, 2);
+    ft::vector<int> a(2, 2);
     //std::vector<int> b(2, 2);
 
-    ft::vector<int> a;
+    //ft::vector<int> a;
 
     std::cout << a.capacity() << std::endl;
     a.push_back(1);
@@ -30,15 +30,26 @@ int main()
     a.push_back(1);
      std::cout << a.capacity() << std::endl;
     
-    a.insert(a.begin(), 5);
-    ft::vector<int>::iterator it = a.begin();
+    // ft::vector<char> c;
+    // std::vector<char> c2;
+
+    // std::cout << c.max_size() << std::endl;
+    // std::cout << c2.max_size() << std::endl;
+    //a.insert(a.begin(), 5);
+    //a.insert(a.begin(), a.begin(), a.end());
+    //std::cout << "type : " << ft::is_integral<std::string>::type().value << std::endl;
     
-    for(;it != a.end(); ++it)
-        std::cout << *it << std::endl;
+    ft::vector<int> b(a.begin(), a.end());
+    //a.insert(a.begin(), a.begin(), a.end());
+    ft::vector<int>::iterator it = b.begin();
+    
+    for(;it != b.end(); ++it)
+       std::cout << *it << std::endl;
     
 
 
-
+    bool test = true;
+    std::cout << "test : " <<  test << std::endl;
 
 
 

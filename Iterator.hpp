@@ -89,8 +89,8 @@ namespace	ft
 			explicit
 			vectorIterator(const Iter& i) : current(i){} //explicit keyword 차이?
 			
-			template <typename _Iter>
-			vectorIterator(const vectorIterator<_Iter, Container >& i)
+			//template <typename Iter>
+			vectorIterator(const vectorIterator<Iter, Container >& i)
 			 : current(i.base()){}
 
 			vectorIterator&
