@@ -69,7 +69,7 @@ namespace	ft
 	};
 
 	template < class Iter, typename Container >
-	class vectorIterator : public ft::iterator < typename ft::iterator_traits<Iter>::iterator_category,
+	class vectorIterator : public ft::iterator < ft::random_access_iterator_tag	,
 						typename ft::iterator_traits<Iter>::value_type,
                         typename ft::iterator_traits<Iter>::difference_type,
                         typename ft::iterator_traits<Iter>::pointer,                   

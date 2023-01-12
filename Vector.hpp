@@ -46,8 +46,8 @@ namespace	ft
 			pointer __end_cap_; // 할당의 끝.
 		
 		protected :
-			//void _M_insert_aux(iterator pos, const T& val);
-			//void _M_insert_aux(iterator pos, T& val);
+			// void _M_insert_aux(iterator pos, const T& val);
+			// void _M_insert_aux(iterator pos, T& val);
 
 		public :
 		// begin ~ end  까지 소멸자 호출. pointer version.
@@ -69,15 +69,30 @@ namespace	ft
 
 		// _begin ~ _end 까지 start에 기존의 값을 소멸시키고 ,새로운 값을 복사한다.
 		pointer copy(iterator _begin, iterator _end, pointer start)
-		{
+		{ 
+			value_type temp;
 			for (; _begin != _end; ++_begin)
 			{	
+				temp = *_begin;
 				alloc.destroy(start);
-				alloc.construct(start, *_begin);
+				alloc.construct(start, temp);
 				++ start;
 			}
 			__end_ = start;
 			return __end_; 
+		}
+
+		pointer allocate_copy(size_type _n, pointer _begin, pointer _end)
+		{
+			pointer _new_begin = alloc.allocate(_n);
+			pointer	_ret = _new_begin;
+
+			for(; _begin != _end; ++_begin)
+			{
+				alloc.construct(_new_begin, *_begin);
+				++_new_begin;
+			}
+			return _ret;
 		}
 		
 		// _finish 부터 이미 할당된 메모리에 begin ~ end 까지 할당한 후에 마지막 end 포인터를 반환.
@@ -91,8 +106,15 @@ namespace	ft
 			return iterator(_finish);
 		}
 
+		iterator uninitialized_fill_n(iterator first, size_type count, const T& value)
+		{
+			for (; count > 0; ++ first, --count)
+				alloc.construct(first.base(), value);
+			return first;
+		}
+
 		//해당 iter에 새로운 값을 집어넣는다 
-		//template < class _Tp, class _Alloc >
+		//template < class T, class _Alloc >
 		void _M_insert_aux(iterator pos, const T __x)
 		{
 			if (__end_ != __end_cap_)// capacity 가 존재할 때
@@ -174,7 +196,7 @@ namespace	ft
 		}
 
 		// pos ~ count개를 val을 집어넣는다.
-		void _M_fill_insert(const_iterator pos, size_type count, const T& val)
+		void _M_fill_insert(iterator pos, size_type count, const T& val)
 		{
 			if (count != 0)
 			{
@@ -185,18 +207,20 @@ namespace	ft
 					iterator old_end(__end_);
 					if (_elems_after > count)
 					{
-						uninitialized_copy(__end_ - count, __end_, __end_);
+						uninitialized_copy(iterator(__end_ - count), iterator(__end_) , __end_);
 						__end_ += count;
 						std::copy_backward(pos, old_end - count, old_end);
-						std::fill(pos, pos + count, val_copy);// what is fill ?
+						for(; pos != pos + count ; ++pos)
+							*pos = val_copy;
 					}
 					else
 					{
-						std::uninitialized_fill_n(__end_, count - _elems_after, val_copy);// what is uninitialized_fill_n ?
+						uninitialized_fill_n(iterator(__end_), count - _elems_after, val_copy);// what is uninitialized_fill_n ?
 						__end_ += count - _elems_after; // ?
 						uninitialized_copy(pos, old_end, __end_);
 						__end_ += _elems_after;
-						std::fill(pos, old_end, val_copy);
+						for (; pos != old_end ; ++pos)
+							*pos = val_copy;
 					}
 				}
 				else
@@ -209,7 +233,7 @@ namespace	ft
 					try
 					{
 						_new_end = uninitialized_copy(iterator(__begin_), pos, _new_start.base());
-						_new_end = std::uninitialized_fill_n(_new_end, count, val);
+						_new_end = uninitialized_fill_n(_new_end, count, val);
 						_new_end = uninitialized_copy(pos, iterator(__end_), _new_end.base());//마지막에 넣는경우 그대로 _new_end를 반환.
 					}
 					catch(...) 
@@ -249,8 +273,11 @@ namespace	ft
 			//vector 에서도 index 값이 capacity를 넘는지 확인하지않는다. at에서만 확인.
 			void _M_range_check(size_type __n) const
 			{
-				if (__n  > this -> size())
-					exit(1); //throw error;
+				if (__n  >= this -> size())
+				{
+					std::cout << "size error " << std::endl;
+					//exit(1); //throw error;
+				}
 			}
 		
 		/// allocaote && deallocate
@@ -421,7 +448,7 @@ namespace	ft
 					const size_type old_size = size();
 					pointer			_tmp = allocate_copy(new_cap, __begin_, __end_);
 					_Destroy(__begin_, __end_);
-					_Deallocate(__begin_, __end_cap_ - __begin_);
+					_M_deallocate(__begin_, __end_cap_ - __begin_);
 					__begin_ = _tmp;
 					__end_ = _tmp + old_size;
 					__end_cap_ = __begin_ + new_cap;
@@ -448,7 +475,7 @@ namespace	ft
 					++ __end_;
 				}
 				else
-					_M_insert_aux( pos, value);// need _M_insert_aux;
+					_M_insert_aux(iterator(pos), value);// need _M_insert_aux;
 				return begin() + __n;
 			}
 
@@ -464,25 +491,31 @@ namespace	ft
 			{
 				std::cout << "insert  iter, iter,  iter " << std::endl;
 				typedef typename ft::is_integral< InputIt >::type type;
-				//_M_insert_dispatch(pos, first, last, type());
+				_M_insert_dispatch(pos, first, last, type());
 
 				return iterator(__begin_); //s
 			}
 			
 			iterator 	erase( iterator pos )
-			{ 
+			{
+				std::cout << "erase (iter)" << std::endl; 
 				if (pos + 1 != end())
-					copy(pos + 1, end(), pos);
-				-- __end_;
-				_Destroy(__end_);
+					copy(pos + 1, end(), pos.base());
+				else
+				{
+					-- __end_;
+					alloc.destroy(__end_);
+				}
 				return pos;
 			}
 
 			iterator	erase( iterator first, iterator last)
 			{
-				iterator __i(copy(last, end(), first));
-				_Destroy(__i, end());
-				__end_ = __end_ - (last - first);
+				iterator save_end = end();
+				iterator __i(copy(last, end(), first.base())); // 지워질 값에 그 지워질값의 다음부분부터의 수를 복사한다.
+				_Destroy(__i.base(), save_end.base());// 다 복사한다음 그  다다음  부분 값까지를 모두 지워준다;
+				__end_ = save_end.base() - (last - first); // 지워진 갯수만큼 빼준다.
+				
 				return first;
 			}
 
