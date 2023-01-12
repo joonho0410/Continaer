@@ -10,6 +10,7 @@
 /*                                                                            */
 /* ************************************************************************** */
 
+#include <algorithm>
 #include <compare>
 #include <initializer_list>
 #include "Utils.hpp"
@@ -33,7 +34,7 @@ namespace	ft
 			typedef	value_type&											reference;
 			typedef	const value_type&									const_reference;	
 			typedef	typename ft::vectorIterator<pointer, vec_type >		iterator;
-			typedef	typename ft::vectorIterator<const_pointer,vec_type> const_iterator;
+			typedef	typename ft::vectorIterator<const_pointer, vec_type > const_iterator;
 			typedef	typename ft::reverse_iterator<iterator>				reverse_iterator;		
 			typedef	typename ft::reverse_iterator<const_iterator>		const_reverse_iterator;
 
@@ -45,11 +46,8 @@ namespace	ft
 			pointer __end_; // back() + 1;
 			pointer __end_cap_; // 할당의 끝.
 		
-		protected :
-			// void _M_insert_aux(iterator pos, const T& val);
-			// void _M_insert_aux(iterator pos, T& val);
-
 		public :
+
 		// begin ~ end  까지 소멸자 호출. pointer version.
 		void _Destroy(pointer _begin, pointer _end)
 		{
@@ -300,7 +298,9 @@ namespace	ft
 				}
 				return save;
 			}
-			
+		///////////////////////////////
+		//// vector constructor
+		///////////////////////////////
 		public :
 			vector() : alloc(allocator_type()), __begin_(0), __end_(0), __end_cap_(0){}
 			~vector()
@@ -391,7 +391,7 @@ namespace	ft
 			{ return allocator_type(); }// ?
 
 			reference operator[](size_type __n){ return *(begin() + __n); }
-			const_reference operator[](size_type __n) const { return *(begin() + __n); }
+			const_reference operator[](size_type __n) const { return *(cbegin() + __n); }
 
 			//range check를 한 후 예외 throw가 필요하다 .	
 			value_type&			at( size_type pos )
@@ -439,7 +439,8 @@ namespace	ft
 			size_type 	size() const
 			{ return size_type( cend() - cbegin()); }
 			size_type	max_size() const
-			{ return size_type(-1) / sizeof(T); }
+			{ return std::min<size_type>(size_type(-1) / sizeof(T), 
+				std::numeric_limits<difference_type>::max()); }
 			void 		reserve( size_type new_cap )
 			{
 				size_type __n = (size_type)(__end_cap_ - __begin_);
@@ -553,4 +554,65 @@ namespace	ft
 				std::swap(__end_cap_, other.__end_cap_);
 			}
 	};
+
+	template<class InputIt1, class InputIt2>
+	bool _M_lexicographical_compare(InputIt1 first1, InputIt1 last1,
+								InputIt2 first2, InputIt2 last2)
+	{
+		for (; (first1 != last1) && (first2 != last2); ++first1, (void) ++first2)
+		{
+			if (*first1 < *first2)
+				return true;
+			if (*first2 < *first1)
+				return false;
+		}
+		return (first1 == last1) && (first2 != last2);
+	}
+
+	template <class _Tp, class _Alloc>//?
+	inline bool 
+	operator==(const vector<_Tp, _Alloc>& __x, const vector<_Tp, _Alloc>& __y)
+	{
+	return __x.size() == __y.size() &&
+			ft::equal(__x.cbegin(), __x.cend(), __y.cbegin());
+	}
+
+	template <class _Tp, class _Alloc>
+	inline bool 
+	operator<(const vector<_Tp, _Alloc>& __x, const vector<_Tp, _Alloc>& __y)
+	{
+	return _M_lexicographical_compare(__x.cbegin(), __x.cend(), 
+									__y.cbegin(), __y.cend());
+	}
+
+	template <class _Tp, class _Alloc>
+	inline void swap(vector<_Tp, _Alloc>& __x, vector<_Tp, _Alloc>& __y)
+	{
+		__x.swap(__y);
+	}
+
+	template <class _Tp, class _Alloc>
+	inline bool
+	operator!=(const vector<_Tp, _Alloc>& __x, const vector<_Tp, _Alloc>& __y) {
+	return !(__x == __y);
+	}
+
+	template <class _Tp, class _Alloc>
+	inline bool
+	operator>(const vector<_Tp, _Alloc>& __x, const vector<_Tp, _Alloc>& __y) {
+	return __y < __x;
+	}
+
+	template <class _Tp, class _Alloc>
+	inline bool
+	operator<=(const vector<_Tp, _Alloc>& __x, const vector<_Tp, _Alloc>& __y) {
+	return !(__y < __x);
+	}
+
+	template <class _Tp, class _Alloc>
+	inline bool
+	operator>=(const vector<_Tp, _Alloc>& __x, const vector<_Tp, _Alloc>& __y) {
+	return !(__x < __y);
+	}
+
 };

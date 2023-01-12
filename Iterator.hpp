@@ -39,7 +39,7 @@ namespace	ft
   template<typename _Tp>
     struct iterator_traits<_Tp*> {
       typedef ft::random_access_iterator_tag iterator_category;
-      typedef _Tp                         value_type;
+      typedef _Tp                      	  value_type;
       typedef ptrdiff_t                   difference_type;
       typedef _Tp*                        pointer;
       typedef _Tp&                        reference;
@@ -79,6 +79,7 @@ namespace	ft
 			typedef typename ft::iterator_traits<Iter>::difference_type	difference_type;
 			typedef typename ft::iterator_traits<Iter>::reference  		reference;
 			typedef typename ft::iterator_traits<Iter>::pointer     	pointer;
+			typedef typename ft::iterator_traits<Iter>::value_type		value_type;
 
 		protected :
 			Iter current;

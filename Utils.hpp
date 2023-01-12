@@ -73,7 +73,7 @@ namespace	ft
 	{
 		while (first1 != last1) {
 			if (!(*first1 == *first2))   // or: if (!pred(*first1,*first2)), for version 2
-			return false;
+				return false;
 			++first1; ++first2;
 		}
 		return true;
