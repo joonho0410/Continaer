@@ -67,6 +67,11 @@ namespace	ft
 		typedef Reference   reference;
 		typedef Category    iterator_category;
 	};
+	
+	//////////////////////////////////////////////////////
+	/////     vector iterator begin	         
+	//////////////////////////////////////////////////////
+
 
 	template < class Iter, typename Container >
 	class vectorIterator : public ft::iterator < ft::random_access_iterator_tag	,
