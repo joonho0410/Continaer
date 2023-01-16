@@ -57,6 +57,32 @@ namespace ft
         typedef ptrdiff_t                                   difference_type;
 
         _node_ptr                                           _m_node;
+
+        void _M_increment()//iterator 증가.
+        {
+            if (_m_node->_m_right != 0)
+            {
+                _m_node = _m_node->_m_right;
+                while (_m_node->_m_left != 0)
+                    _m_node = _m_node->_m_left;
+            }
+            else
+            {
+                _node_ptr _parents = _m_node->_m_parents;
+                while (_m_node == _parents->_m_right)//내가 parents의 왼쪽이 될 떄 까지 올라간다.
+                {
+                    _m_node = _parents;
+                    _parents = _parents -> _m_parents;
+                }
+                if (_m_node->_m_right != _parents)//이 부분이 어떤 경우를 말하는걸까? 루트노드에 도착했을때로 생각됨.
+                    _m_node = _parents;
+            }
+        }
+        
+        void _M_decrement()//iterator 감소.
+        {
+            
+        }
     };
 
     template <class _value, class _ref, class _ptr>
@@ -68,7 +94,60 @@ namespace ft
         typedef _Rb_tree_iterator<_value, _value&, _value*>             iterator;
         typedef _Rb_tree_iterator<_value, const _value&, const _value*> const_iterator;
         typedef _Rb_tree_iterator<_value, _ref, _ptr>                   _Self;
-        typedef _Rb_tree_node<_value>*                                  _link_type;
+        typedef _Rb_tree_node<_value>*                                  _Link_type;
+
+        reference operator*() const { return _Link_type(_m_node)->_m_value_field }
+        pointer operator->() const { return &(opreator*(); )}
+
+        _Self& operator++() {}
+        _Self  operator++(int){}
+
+        inline void
+        _Rb_tree_rotate_left(_Rb_tree_node_base* _x, _Rb_tree_node_base* _root)
+        {
+            _Rb_tree_node_base* _xr = _x-> _m_right;
+            _x -> _m_right = _xr -> _m_left;
+            if (_xr->_m_left != 0) 
+                _xr->_m_left->_m_parents = _x;
+            _xr->_m_parents = _x->_m_parents;
+
+            if (_x == _root)
+                _root = _xr;
+            else if (_x == _x->_m_parents->_m_left)
+                _x->_m_parents->_m_left = _xr;
+            else
+                _x->_m_paretns->_m_right = _xr;
+
+            _xr->_m_left = _x;
+            _x->_m_parents = _xr;
+        }
+
+        inline void
+        _Rb_tree_rotate_right(_Rb_tree_node_base* _x, _Rb_tree_node_base* _root)
+        {
+            _Rb_tree_node_base* _xl = _x->_m_left;
+            _x->left = _xl->_m_right;
+
+            if (_xl->_m_right != 0)
+                _xl->_m_right->_m_parents = _x;
+            _xl->_m_paretns = _x->_m_parents;
+
+            if(_x == _root)
+                _root = _xl;
+            else if (_x == _x->_m_parents->_m_left)
+                _x->_m_parents->_m_left = _xl;
+            else
+                _x->_m_parents->_m_right = _xl;
+
+            _xl->_m_right = _x;
+            _x ->_m_parents = _xl;
+        }
+
+        inline void
+        _Rb_tree_rebalance(_Rb_tree_node_base* _x, _Rb_tree_node_base* _root)
+        {
+            
+        }
     };
 
     //////////////////////////////////////////////////////
@@ -100,6 +179,7 @@ namespace ft
             { allocator_type().deallocator(_p, 1); }
     };
 
+    //중위순회를 기반으로 한다.
     template <class Key, class Value, class KeyofValue, class Compare,
                 class _Alloc = std::allocator<Value> >
     class _Rb_tree : protected _Rb_tree_base<Value, _Alloc>
@@ -121,10 +201,10 @@ namespace ft
             typedef size_t              size_type;
             typedef ptrdiff_t           difference_type;
 
-            typedef _Rb_tree_iterator<value_type, reference, pointer>                iterator;
-            typedef _Rb_tree_iterator<value_type, const_reference, const_pointer>    const_iterator;
-            typedef reverse_iterator<iterator>                                       reverse_iterator;
-            typedef reverse_iterator<const_iterator>                                 const_reverse_iterator;
+            typedef _Rb_tree_iterator<value_type, reference, pointer>                    iterator;
+            typedef _Rb_tree_iterator<value_type, const_reference, const_pointer>        const_iterator;
+            typedef ft::reverse_iterator<iterator>                                       reverse_iterator;
+            typedef ft::reverse_iterator<const_iterator>                                 const_reverse_iterator;
 
             typedef typename _Rb_tree_base<Value, _Alloc>::allocator_type   allocator_type; // Node구조체(_Rb_tree_node)의 allocator;
             allocator_type get_allocator() const { return allocator_type(); } 
@@ -132,10 +212,25 @@ namespace ft
         protected :
             
             _Link_type&
-            _M_copy(_Link_type& _from, _Link_type& _to)
+            _M_copy(_Link_type& _x, _Link_type& _p) // 무슨 역할을 하는지 이해가 필요함.
             {
-                _Link_type _top = _M_clone_node(_from);
-                _top->_m_parents = _to;
+                _Link_type _top = _M_clone_node(_x);
+                _top->_m_parents = _p;
+                if (_x -> _m_right)
+                    _top -> _m_right = _M_copy(_S_right(_x), _top);
+                _p = _top;
+                _x = _S_left(_x);
+
+                while (_x != 0)
+                {
+                    _Link_type _y = _M_clone_node(_x);
+                    _p->_m_left = _y;
+                    _y->_m_parents = _p;
+                    if ( _x->_m_right)
+                        _y->_m_right = _M_copy(_S_right(_x), _y);
+                    _p = _y;
+                    _x = _S_left(_x);
+                }
             }
 
             _Link_type
@@ -147,7 +242,7 @@ namespace ft
             }
             
             _Link_type
-            _M_clone_node(_Link_type _x)
+            _M_clone_node(_Link_type _x) // color와 가지고 있는 변수값을 복사하고 나머지는 초기화.
             {
                 _Link_type _tmp = _M_create_node(_x->_m_value_field);
                 _tmp -> _m_color = _x->_m_color;
@@ -229,7 +324,7 @@ namespace ft
             _Rb_tree(const Compare& _comp, const allocator_type& _a)
                 : _Base(_a), _m_node_count(0), _m_key_compare(_comp)
                 { _M_empty_initialize(); }
-            _Rb_tree(const _Rb_tree<Key, Value, KeyofValue, Comapre, _Alloc> & _x)
+            _Rb_tree(const _Rb_tree<Key, Value, KeyofValue, Comapre, _Alloc> & _x) // _Rb_tree 복사하는거 같은데 이해를 하지못하겠음
                 : _Base(_x.get_allocator()), _m_node_count(0), _m_key_compare(_x._m_key_compare)
                 {
                     if (_x._M_root() == 0) // change 0 == null_ptr ? 
@@ -244,5 +339,30 @@ namespace ft
                     _m_node_count = _x._m_node_count;
                 }
             ~_Rb_tree() { clear (); }
+
+            public :
+                Compare key_comp() const { return _m_key_compare; }
+                iterator begin() { return _M_leftmost(); }
+                const_iterator begin() const { return _M_leftmost(); }
+                iterator end() { return _m_header; }
+                const_iterator end() const { return _m_header; }
+                reverse_iterator rbegin() { return reverse_iterator(end()); }
+                reverse_iterator rend() { return reverse_iterator(begin()); }
+                const_reverse_iterator cbegin() const { return const_reverse_iterator(end()); }
+                const_reverse_iterator cend() const { return const_reverse_iterator(begin()); }
+
+                bool empty() const { return _m_node_count == 0; }
+                size_type size() const { return _m_node_count; }
+                size_type max_size() const { return sizetype(-1); } // ? max_size가 대체뭐냐
+
+                void swap(_Rb_tree<Key, Value, KeyofValue, Compare, _Alloc>& _t)
+                {
+                    std::swap(_m_header, _t._m_header);
+                    std::swap(_m_node_count, _t._m_node_count);
+                    std::swap(_m_key_compare, _t._m_key_compare);
+                }
+            
+            public :
+
     };
 };
