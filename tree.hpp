@@ -81,7 +81,9 @@ namespace ft
         
         void _M_decrement()//iterator 감소.
         {
-            if (_m_node->_m_left != 0)
+            if (_m_node->_m_color ==_red && _m_node->_m_parents->_m_parents == _m_node)
+                _m_node = _m_node->_m_right; // _m_node가 header node 일때 right_max return;
+            else if (_m_node->_m_left != 0)
             {
                 _m_node = _m_node->_m_left;
                 while (_m_node->_m_right != 0)
@@ -120,6 +122,42 @@ namespace ft
             _Self _tmp = *this;
             _M_increment();
             return _tmp;
+        }
+
+        template <class _Value, class _Ref, class _Ptr>
+        inline bool operator==(const _Rb_tree_iterator<_Value, _Ref, _Ptr>& __x,
+                    const _Rb_tree_iterator<_Value, _Ref, _Ptr>& __y) {
+        return __x._m_node == __y._m_node;
+        }
+
+        template <class _Value>
+        inline bool operator==(const _Rb_tree_iterator<_Value, const _Value&, const _Value*>& __x,
+                    const _Rb_tree_iterator<_Value, _Value&, _Value*>& __y) {
+        return __x._m_node == __y._m_node;
+        }
+
+        template <class _Value>
+        inline bool operator==(const _Rb_tree_iterator<_Value, _Value&, _Value*>& __x,
+                    const _Rb_tree_iterator<_Value, const _Value&, const _Value*>& __y) {
+        return __x._m_node == __y._m_node;
+        }
+
+        template <class _Value, class _Ref, class _Ptr>
+        inline bool operator!=(const _Rb_tree_iterator<_Value, _Ref, _Ptr>& __x,
+                    const _Rb_tree_iterator<_Value, _Ref, _Ptr>& __y) {
+        return __x._m_node != __y._m_node;
+        }
+
+        template <class _Value>
+        inline bool operator!=(const _Rb_tree_iterator<_Value, const _Value&, const _Value*>& __x,
+                    const _Rb_tree_iterator<_Value, _Value&, _Value*>& __y) {
+        return __x._m_node != __y._m_node;
+        }
+
+        template <class _Value>
+        inline bool operator!=(const _Rb_tree_iterator<_Value, _Value&, _Value*>& __x,
+                    const _Rb_tree_iterator<_Value, const _Value&, const _Value*>& __y) {
+        return __x._m_node != __y._m_node;
         }
 
         inline void
@@ -164,9 +202,60 @@ namespace ft
         }
 
         inline void
-        _Rb_tree_rebalance(_Rb_tree_node_base* _x, _Rb_tree_node_base* _root)
+        _Rb_tree_rebalance_insert(_Rb_tree_node_base* _x, _Rb_tree_node_base* _root)// _x -> 추가된 node, _root -> 루트노드.
         {
-
+            _x->_m_color = _red; // insert node 는 항상 red;
+            while (_x != _root && _x->_m_parents->_m_color == _red)//RR 위반의 경우. 부모가 black일 경우에는 본인이 root일 경우에 색상변경외에는 위반이 발생하지않는다.
+            {
+                if (_x->_m_parents == _x->_m_parents->_m_parents->_m_left)//부모가 할아버지의 왼쪽 자식인 경우;
+                {
+                    if (_x->_m_parents->_m_parents->_m_right && 
+                        _x->_m_parents->_m_parents->_m_right->_m_color == _red)//삼촌의 color가 레드일때 case1;
+                    {
+                        _x->_m_parents->_m_color = _black; // 부모와 삼촌의 색깔을 모두 black으로 바꿔줌;
+                        _x->_m_parents->_m_parents->_m_right = _black;
+                        _x->_m_parents->_m_parents->_m_color = _red;
+                        _x = _x->_m_parents->_m_parents; // 할아버지노드에서부터 다시한번 위반검사.
+                    }
+                    else // 부모는 할아버지의 왼쪽자식이면서 red, 삼촌은 black인 경우  
+                    {
+                        if (_x->_m_parents->_m_right == _x) // _x가 부모의 오른쪽 자식인 경우 case2
+                        {
+                            _x = _x->_m_parents;
+                            _Rb_tree_rotate_left(_x, _root);// p[z]에 대해서 rotate
+                        }
+                        // 부모의 왼쪽 자식인 경우 case3
+                        _x->_m_parents->_m_color = _black;
+                        _x->_m_parents->_m_parents->_m_color = _red;
+                        _Rb_tree_rotate_right(_x->_m_parents->_m_parents, _root);//p[p[z]]에 대해서 rotate
+                    }
+                }
+                else // 부모가 할아버지의 오른쪽 자식인 경우. 위의 케이스에서 left와 right를 전부 반대로 해주면 된다.
+                {
+                    
+                    if (_x->_m_parents->_m_parents->_m_left && 
+                        _x->_m_parents->_m_parents->_m_left->_m_color == _red)//삼촌의 color가 레드일때 case1;
+                    {
+                        _x->_m_parents->_m_color = _black; // 부모와 삼촌의 색깔을 모두 black으로 바꿔줌;
+                        _x->_m_parents->_m_parents->_m_left = _black;
+                        _x->_m_parents->_m_parents->_m_color = _red;
+                        _x = _x->_m_parents->_m_parents; // 할아버지노드에서부터 다시한번 위반검사.
+                    }
+                    else // 부모는 할아버지의 왼쪽자식이면서 red, 삼촌은 black인 경우  
+                    {
+                        if (_x->_m_parents->_m_left == _x) // _x가 부모의 왼쪽 자식인 경우 case2
+                        {
+                            _x = _x->_m_parents;
+                            _Rb_tree_rotate_right(_x, _root);// p[z]에 대해서 rotate
+                        }
+                        // 부모의 왼쪽 자식인 경우 case3
+                        _x->_m_parents->_m_color = _black;
+                        _x->_m_parents->_m_parents->_m_color = _red;
+                        _Rb_tree_rotate_left(_x->_m_parents->_m_parents, _root);//p[p[z]]에 대해서 rotate
+                    }
+                }
+            }
+            _root->_m_color = _black;//부모가 black인 경우에 위반이 발생하지 아므로 바로 넣어주면된다. _x가 _root일 경우를 생각해서 _root을 black으로 바꿔준다.
         }
     };
 
@@ -199,7 +288,7 @@ namespace ft
             { allocator_type().deallocator(_p, 1); }
     };
 
-    //중위순회를 기반으로 한다.
+    
     template <class Key, class Value, class KeyofValue, class Compare,
                 class _Alloc = std::allocator<Value> >
     class _Rb_tree : protected _Rb_tree_base<Value, _Alloc>
