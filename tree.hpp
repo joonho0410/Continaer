@@ -74,14 +74,29 @@ namespace ft
                     _m_node = _parents;
                     _parents = _parents -> _m_parents;
                 }
-                if (_m_node->_m_right != _parents)//이 부분이 어떤 경우를 말하는걸까? 루트노드에 도착했을때로 생각됨.
+                if (_m_node->_m_right != _parents)//? 
                     _m_node = _parents;
             }
         }
         
         void _M_decrement()//iterator 감소.
         {
-            
+            if (_m_node->_m_left != 0)
+            {
+                _m_node = _m_node->_m_left;
+                while (_m_node->_m_right != 0)
+                    _m_node = _m_node->_m_right;
+            }
+            else
+            {
+                _node_ptr _parents = _m_node->_m_parents;
+                while (_m_node == _parents->_m_left)
+                {
+                    _m_node = _parents;
+                    _parents = _parents->_m_parents;
+                }
+                _m_node = _parents;
+            }
         }
     };
 
@@ -99,8 +114,13 @@ namespace ft
         reference operator*() const { return _Link_type(_m_node)->_m_value_field }
         pointer operator->() const { return &(opreator*(); )}
 
-        _Self& operator++() {}
-        _Self  operator++(int){}
+        _Self& operator++() { _M_increment(); return *this}
+        _Self  operator++(int)
+        {
+            _Self _tmp = *this;
+            _M_increment();
+            return _tmp;
+        }
 
         inline void
         _Rb_tree_rotate_left(_Rb_tree_node_base* _x, _Rb_tree_node_base* _root)
@@ -146,7 +166,7 @@ namespace ft
         inline void
         _Rb_tree_rebalance(_Rb_tree_node_base* _x, _Rb_tree_node_base* _root)
         {
-            
+
         }
     };
 
