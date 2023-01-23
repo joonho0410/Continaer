@@ -113,6 +113,10 @@ namespace ft
         typedef _Rb_tree_iterator<_value, _ref, _ptr>                   _Self;
         typedef _Rb_tree_node<_value>*                                  _Link_type;
 
+
+        _Rb_tree_iterator(){}
+        _Rb_tree_iterator(_Link_type _x) { _m_node = _x ; }
+        _Rb_tree_iterator(const iterator* _it) { _m_node = _x._m_node ; }
         reference operator*() const { return _Link_type(_m_node)->_m_value_field }
         pointer operator->() const { return &(opreator*(); )}
 
@@ -505,6 +509,16 @@ namespace ft
                 return iterator(_tmp);
             }
 
+            void
+            _M_erase(_Link_type& _x)
+            {
+                if (_x->_m_left != 0)
+                    _M_erase(_x->_m_left);
+                if (_x->_m_right != 0)
+                    _M_erase(_x->_m_right);
+                _M_destroy_node(_x);
+            }
+
             _Link_type&
             _M_copy(_Link_type& _x, _Link_type& _p)// p에다가  x의 트리를 복사한다. 
             {
@@ -742,9 +756,9 @@ namespace ft
                 }
                 void        clear()
                 {
-                    if (_m_node_count !=0)
+                    if (_m_node_count != 0)
                     {
-                        _M_erase(_M_root);
+                        _M_erase(_M_root());
                         _M_leftmost() = _m_header;
                         _m_root() = 0;
                         _M_rightmost() = _m_header;
@@ -753,14 +767,102 @@ namespace ft
                 }
 
                 public :
-                    iterator find(const key_type& _x);
-                    const_iterator find(const key_type& _x) const;
-                    size_type count(const key_type& _x) const;
-                    iterator lower_bound(const key_type& _x); // 자신을 포함해서 자신보다 크거나 같은 바로 다음의 key값 iter
-                    const_iterator lower_bound(const key_type& _x) const;
-                    iterator upper_bound(const key_type& _x); // 자신보다 큰 다음의 key값을 가지고 있는 iter 
-                    const_iterator upper_bound(const key_type& _x) const;
-                    ft::pair<iterator, iterator> equal_range(const key_type& _x);
-                    ft::pair<const_iterator, const_iterator> equal_range(const key_type& _x) const;
+                    iterator find(const key_type& _x)
+                    {
+                        iterator it = lower_bound(_x);
+                        if (p == end() || _m_key_compare(_x, p._m_node))
+                            return end();
+                        else
+                            return it;
+                    }
+                    const_iterator find(const key_type& _x) const
+                    {
+                        const_iterator it = lower_bound(_x);
+                        if (p == end() || _m_key_compare(_x, p._m_node))
+                            return end();
+                        else
+                            return it;
+                    }
+                    size_type count(const key_type& _x) const
+                    {
+                        ft::pair<const_iterator, const_iterator> _p = equal_range(_x);
+                        size_type _n = _p.first - _p.second;
+                        return _n;
+                    }
+                    
+                    iterator lower_bound(const key_type& _x)// 자신을 포함해서 자신보다 크거나 같은 바로 다음의 key값 iter
+                    {
+                        _Link_type _p = _m_header;
+                        _Link_type _c = _M_root();
+
+                        while (_c != 0)
+                        {
+                            if (!_m_key_compare(_S_key(_c), _x)) // _c >= _x;
+                            {
+                                _p = _c;
+                                _c = _c->_m_right;
+                            }
+                            else // _x < _c;
+                                _c = _c->_m_left;
+                        }
+                        return iterator(_p);
+                    }
+                    const_iterator lower_bound(const key_type& _x) const
+                    {
+                        _Link_type _p = _m_header;
+                        _Link_type _c = _M_root();
+
+                        while (_c != 0)
+                        {
+                            if (!_m_key_compare(_S_key(_c), _x)) // _c >= _x;
+                            {
+                                _p = _c;
+                                _c = _c->_m_right;
+                            }
+                            else // _x < _c;
+                                _c = _c->_m_left;
+                        }
+                        return iterator(_p);
+                    }
+                    iterator upper_bound(const key_type& _x) // 자신보다 큰 다음의 key값을 가지고 있는 iter 
+                    {
+                        _Link_type _p = _m_header;
+                        _Link_type _c = _M_root();
+
+                        while (_c != 0)
+                        {
+                            if (_m_key_compare(_x, _S_key(_c)))
+                            {
+                                _p = _c;
+                                _c = _c->_m_left;
+                            }
+                            else
+                                _c = _c->_m_right;
+                        }
+                        return iterator(_p);
+                    }
+                    const_iterator upper_bound(const key_type& _x) const
+                    {
+                        _Link_type _p = _m_header;
+                        _Link_type _c = _M_root();
+
+                        while (_c != 0)
+                        {
+                            _p = _c;
+                            if (_m_key_compare(_x, _S_key(_c)))
+                                _c = _c->_m_left;
+                            else
+                                _c = _c->_m_right;
+                        }
+                        return const_iterator(_p);
+                    }
+                    ft::pair<iterator, iterator> equal_range(const key_type& _x)// iter1.key <= _x < iter2.key
+                    {
+                        return ft::make_pair(lower_bound(_x), upper_bound(_x));
+                    }
+                    ft::pair<const_iterator, const_iterator> equal_range(const key_type& _x) const
+                    {
+                         return ft::make_pair(lower_bound(_x), upper_bound(_x));
+                    }
     };
 };
