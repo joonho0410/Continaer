@@ -10,11 +10,12 @@
 /*                                                                            */
 /* ************************************************************************** */
 
+#pragma once
 #include <compare>
 #include <initializer_list>
 #include "Utils.hpp"
 
-#pragma once
+
 namespace	ft
 {
 	//////////////////////////////////////////////////////

@@ -52,7 +52,7 @@ namespace ft
 
     struct _Rb_tree_iterator_base
     {
-        typedef typename _Rb_tree_node_base::_node_ptr      _node_ptr;
+        typedef _Rb_tree_node_base::_node_ptr                _node_ptr;
         typedef ft::bidirectional_iterator_tag              iterator_category;
         typedef ptrdiff_t                                   difference_type;
 
@@ -116,11 +116,11 @@ namespace ft
 
         _Rb_tree_iterator(){}
         _Rb_tree_iterator(_Link_type _x) { _m_node = _x ; }
-        _Rb_tree_iterator(const iterator* _it) { _m_node = _x._m_node ; }
-        reference operator*() const { return _Link_type(_m_node)->_m_value_field }
-        pointer operator->() const { return &(opreator*(); )}
+        _Rb_tree_iterator(const iterator* _it) { _m_node = _it->_m_node ; }
+        reference operator*() const { return _Link_type(_m_node)->_m_value_field; }
+        pointer operator->() const { return &(operator*()); }
 
-        _Self& operator++() { _M_increment(); return *this}
+        _Self& operator++() { _M_increment(); return *this ;}
         _Self  operator++(int)
         {
             _Self _tmp = *this;
@@ -128,7 +128,7 @@ namespace ft
             return _tmp;
         }
 
-        _Self& operator--() { _M_decrement(); return *this}
+        _Self& operator--() { _M_decrement(); return *this ;}
         _Self  operator--(int)
         {
             _Self _tmp = *this;
@@ -136,43 +136,43 @@ namespace ft
             return _tmp;
         }
 
-        template <class _Value, class _Ref, class _Ptr>
-        inline bool operator==(const _Rb_tree_iterator<_Value, _Ref, _Ptr>& __x,
-                    const _Rb_tree_iterator<_Value, _Ref, _Ptr>& __y) {
-        return __x._m_node == __y._m_node;
-        }
+        // template <class _Value, class _Ref, class _Ptr>
+        // inline bool operator==(const _Rb_tree_iterator<_Value, _Ref, _Ptr>& __x,
+        //             const _Rb_tree_iterator<_Value, _Ref, _Ptr>& __y) {
+        // return __x._m_node == __y._m_node;
+        // }
 
-        template <class _Value>
-        inline bool operator==(const _Rb_tree_iterator<_Value, const _Value&, const _Value*>& __x,
-                    const _Rb_tree_iterator<_Value, _Value&, _Value*>& __y) {
-        return __x._m_node == __y._m_node;
-        }
+        // template <class _Value>
+        // inline bool operator==(const _Rb_tree_iterator<_Value, const _Value&, const _Value*>& __x,
+        //             const _Rb_tree_iterator<_Value, _Value&, _Value*>& __y) {
+        // return __x._m_node == __y._m_node;
+        // }
 
-        template <class _Value>
-        inline bool operator==(const _Rb_tree_iterator<_Value, _Value&, _Value*>& __x,
-                    const _Rb_tree_iterator<_Value, const _Value&, const _Value*>& __y) {
-        return __x._m_node == __y._m_node;
-        }
+        // template <class _Value>
+        // inline bool operator==(const _Rb_tree_iterator<_Value, _Value&, _Value*>& __x,
+        //             const _Rb_tree_iterator<_Value, const _Value&, const _Value*>& __y) {
+        // return __x._m_node == __y._m_node;
+        // }
 
-        template <class _Value, class _Ref, class _Ptr>
-        inline bool operator!=(const _Rb_tree_iterator<_Value, _Ref, _Ptr>& __x,
-                    const _Rb_tree_iterator<_Value, _Ref, _Ptr>& __y) {
-        return __x._m_node != __y._m_node;
-        }
+        // template <class _Value, class _Ref, class _Ptr>
+        // inline bool operator!=(const _Rb_tree_iterator<_Value, _Ref, _Ptr>& __x,
+        //             const _Rb_tree_iterator<_Value, _Ref, _Ptr>& __y) {
+        // return __x._m_node != __y._m_node;
+        // }
 
-        template <class _Value>
-        inline bool operator!=(const _Rb_tree_iterator<_Value, const _Value&, const _Value*>& __x,
-                    const _Rb_tree_iterator<_Value, _Value&, _Value*>& __y) {
-        return __x._m_node != __y._m_node;
-        }
+        // template <class _Value>
+        // inline bool operator!=(const _Rb_tree_iterator<_Value, const _Value&, const _Value*>& __x,
+        //             const _Rb_tree_iterator<_Value, _Value&, _Value*>& __y) {
+        // return __x._m_node != __y._m_node;
+        // }
 
-        template <class _Value>
-        inline bool operator!=(const _Rb_tree_iterator<_Value, _Value&, _Value*>& __x,
-                    const _Rb_tree_iterator<_Value, const _Value&, const _Value*>& __y) {
-        return __x._m_node != __y._m_node;
-        }
+        // template <class _Value>
+        // inline bool operator!=(const _Rb_tree_iterator<_Value, _Value&, _Value*>& __x,
+        //             const _Rb_tree_iterator<_Value, const _Value&, const _Value*>& __y) {
+        // return __x._m_node != __y._m_node;
+        // }
 
-        inline void
+        static inline void
         _Rb_tree_rotate_left(_Rb_tree_node_base* _x, _Rb_tree_node_base* _root)
         {
             _Rb_tree_node_base* _xr = _x-> _m_right;
@@ -186,21 +186,21 @@ namespace ft
             else if (_x == _x->_m_parents->_m_left)
                 _x->_m_parents->_m_left = _xr;
             else
-                _x->_m_paretns->_m_right = _xr;
+                _x->_m_parents->_m_right = _xr;
 
             _xr->_m_left = _x;
             _x->_m_parents = _xr;
         }
 
-        inline void
+        static inline void
         _Rb_tree_rotate_right(_Rb_tree_node_base* _x, _Rb_tree_node_base* _root)
         {
             _Rb_tree_node_base* _xl = _x->_m_left;
-            _x->left = _xl->_m_right;
+            _x->_m_left = _xl->_m_right;
 
             if (_xl->_m_right != 0)
                 _xl->_m_right->_m_parents = _x;
-            _xl->_m_paretns = _x->_m_parents;
+            _xl->_m_parents = _x->_m_parents;
 
             if(_x == _root)
                 _root = _xl;
@@ -225,7 +225,7 @@ namespace ft
                         _x->_m_parents->_m_parents->_m_right->_m_color == _red)//삼촌의 color가 레드일때 case1;
                     {
                         _x->_m_parents->_m_color = _black; // 부모와 삼촌의 색깔을 모두 black으로 바꿔줌;
-                        _x->_m_parents->_m_parents->_m_right = _black;
+                        _x->_m_parents->_m_parents->_m_right->_m_color = _black;
                         _x->_m_parents->_m_parents->_m_color = _red;
                         _x = _x->_m_parents->_m_parents; // 할아버지노드에서부터 다시한번 위반검사.
                     }
@@ -249,7 +249,7 @@ namespace ft
                         _x->_m_parents->_m_parents->_m_left->_m_color == _red)//삼촌의 color가 레드일때 case1;
                     {
                         _x->_m_parents->_m_color = _black; // 부모와 삼촌의 색깔을 모두 black으로 바꿔줌;
-                        _x->_m_parents->_m_parents->_m_left = _black;
+                        _x->_m_parents->_m_parents->_m_left->_m_color = _black;
                         _x->_m_parents->_m_parents->_m_color = _red;
                         _x = _x->_m_parents->_m_parents; // 할아버지노드에서부터 다시한번 위반검사.
                     }
@@ -271,10 +271,10 @@ namespace ft
         }
 
         static inline _Rb_tree_node_base*
-        _Rb_tree_rebalance_erase(_Rb_tree_base* _z,
-                                 _Rb_tree_base* _root,
-                                 _Rb_tree_base* _leftmost,
-                                 _Rb_tree_base* _rightmost)
+        _Rb_tree_rebalance_erase(_Rb_tree_node_base* _z,
+                                 _Rb_tree_node_base* _root,
+                                 _Rb_tree_node_base* _leftmost,
+                                 _Rb_tree_node_base* _rightmost)
         {
             _Rb_tree_node_base* _target = _z; // really deleted (succesor)
             _Rb_tree_node_base* _succesor_p = 0; 
@@ -284,7 +284,7 @@ namespace ft
 
             if (_target->_m_left == 0)// 왼쪽이 비어있으면 오른쪽이 올라오는데 null이던 있던 상관없이 그냥 붙여주면된다.
                 _succesor_c = _target->_m_right;
-            else if (_taget->_m_right == 0) //왼쪽 오른쪽이 모두 비어있으면 둘중하나 아무거나 올려도 null 아님 ?
+            else if (_target->_m_right == 0) //왼쪽 오른쪽이 모두 비어있으면 둘중하나 아무거나 올려도 null 아님 ?
                 _succesor_c = _target->_m_left;
             else // 왼쪽도 비어있지 않고, 오른쪽도 비어있지 않을 때
             {
@@ -357,7 +357,7 @@ namespace ft
                             _w = _succesor_c->_m_parents->_m_right;
                         }
                         if ((_w->_m_left == 0 || _w->_m_left->_m_color == _black) && // case2. 형제노드가 black, 형제노드의 자식들이 모두 black;
-                        (_w->_m_irght ==0 || _w->_m_right->_m_color == _black)) // nil node is black
+                        (_w->_m_right == 0 || _w->_m_right->_m_color == _black)) // nil node is black
                         {
                             _w->_m_color = _red;
                             _succesor_c = _succesor_c->_m_parents;
@@ -416,16 +416,16 @@ namespace ft
 	//////////////////////////////////////////////////////
 
     template <class _Tp, class _Alloc>
-    struct _Rb_tree_base
+    class _Rb_tree_base
     {
         public : 
-            typedef typename _Alloc::rebind< _Rb_tree_node<_Tp> >::other allocator_type; 
+            typedef typename _Alloc::template rebind< _Rb_tree_node<_Tp> >::other allocator_type; 
         
-        protected :
+        public :
             _Rb_tree_node<_Tp>*         _m_header; // 트리의 root
 
         public :
-            _Rb_tree_base (const allocator_type& _a) : _M_header(0)
+            _Rb_tree_base (const allocator_type& _a) : _m_header(0)
             { _m_header = _M_get_node(); }
             ~_Rb_tree_base ()
             { _M_put_node(_m_header); }
@@ -441,12 +441,12 @@ namespace ft
     };
 
     
-    template <class Key, class Value, class KeyOfValue, class Compare,
-                class _Alloc = std::allocator<Value> >
-    class _Rb_tree : protected _Rb_tree_base<Value, _Alloc>
+    template <class Key, class Value, class KeyOfValue, class Compare, class _Alloc = std::allocator<Value> >
+    class _Rb_tree : public _Rb_tree_base<Value, _Alloc>
     {
         public :
-            typedef typename _Rb_tree_base<Value, _Alloc> _Base;
+            typedef _Rb_tree_base<Value, _Alloc> _Base;
+            
         protected :
             typedef _Rb_tree_node_base*     _Base_ptr; // node_base pointer, 해당노드의 부모,자식,컬러등의 정보를 저장.
             typedef _Rb_tree_node<Value>    _Rb_tree_node;
@@ -454,7 +454,7 @@ namespace ft
         
         public :    
             typedef Key                 key_type;
-            typedef Value               value_type;
+            typedef Value               value_type; // ft::pair<key, value>;
             typedef value_type*         pointer;
             typedef const value_type*   const_pointer;
             typedef value_type&         reference;
@@ -471,7 +471,7 @@ namespace ft
             typedef typename _Rb_tree_base<Value, _Alloc>::allocator_type   allocator_type; // Node구조체(_Rb_tree_node)의 allocator;
             allocator_type get_allocator() const { return allocator_type(); } 
 
-        protected :
+        public :
             iterator
             _M_insert(_Link_type _child, _Link_type _parents, const value_type& _v)
             {
@@ -579,15 +579,15 @@ namespace ft
             { return (_Link_type&) _m_header -> _m_right; }
 
             static _Link_type& _S_left(_Link_type _x)
-                { return (_Link_type&)(_x -> _m_left; )}
+                { return (_Link_type&)(_x -> _m_left); }
             static _Link_type& _S_right(_Link_type _x)
-                { return (_Link_type&)(_x -> _m_right; )}
+                { return (_Link_type&)(_x -> _m_right); }
             static _Link_type& _S_parents(_Link_type _x)
-                { return (_Link_type&)(_x -> _m_parents; )}
+                { return (_Link_type&)(_x -> _m_parents); }
 
             static reference _S_value(_Link_type _x)
                 { return _x -> _m_value_field; }
-            static const _Key& _S_key(_Link_type _x) // what is keyofvalue?
+            static const Key& _S_key(_Link_type _x) // what is keyofvalue?
                 { return _x -> KeyOfValue()(_S_value(_x)); }
             static _color& _S_color(_Link_type _x)
                 { return (_color&)_x -> _m_color; }
@@ -595,32 +595,32 @@ namespace ft
             /// base_ptr version. iterator << vector<int> iterator == int*
             
             static _Link_type& _S_left(_Base_ptr _x)
-                { return (_Link_type&)(_x -> _m_left; )}
+                { return (_Link_type&)(_x -> _m_left); }
             static _Link_type& _S_right(_Base_ptr _x)
-                { return (_Link_type&)(_x -> _m_right; )}
+                { return (_Link_type&)(_x -> _m_right); }
             static _Link_type& _S_parents(_Base_ptr _x)
-                { return (_Link_type&)(_x -> _m_parents; )}
+                { return (_Link_type&)(_x -> _m_parents); }
 
             static reference _S_value(_Base_ptr _x)
-                { return _x -> _m_value_field; }
-            static const _Key& _S_key(_Base_ptr _x) // what is keyofvalue? && _Link_type(_x) ?
-                { return _x -> KeyOfValue()(_S_value(_Link_type(_x))); }
+                { return ((_Link_type)_x) -> _m_value_field; }
+            static const Key& _S_key(_Base_ptr _x) // what is keyofvalue? && _Link_type(_x) ?
+                { return KeyOfValue()(_S_value(_x)); }
             static _color& _S_color(_Base_ptr _x)
                 { return (_color&)(_Link_type(_x) -> _m_color); }
 
             /// find left last or right last;
             static _Link_type _S_minimum(_Link_type _x) 
                 { return (_Link_type)  _Rb_tree_node_base::_S_minimum(_x); }
-            static _Link_type _S_maximum(_Link_type __x)
+            static _Link_type _S_maximum(_Link_type _x)
                 { return (_Link_type) _Rb_tree_node_base::_S_maximum(_x); }
 
         private :
-            void _M_initialize() // 각각의 레퍼런스를 불러서 초기화를 해준다.
+            void _M_empty_initialize() // 각각의 레퍼런스를 불러서 초기화를 해준다.
             {
                 _S_color(_m_header) = _red;
-                _m_root() = 0;
-                _m_leftmost() = _m_header;
-                _m_rightmost() = _m_header;
+                _M_root() = 0;
+                _M_leftmost() = _m_header;
+                _M_rightmost() = _m_header;
             }
 
         public :
@@ -633,7 +633,7 @@ namespace ft
             _Rb_tree(const Compare& _comp, const allocator_type& _a)
                 : _Base(_a), _m_node_count(0), _m_key_compare(_comp)
                 { _M_empty_initialize(); }
-            _Rb_tree(const _Rb_tree<Key, Value, KeyOfValue, Comapre, _Alloc> & _x) // _Rb_tree 복사하는거 같은데 이해를 하지못하겠음
+            _Rb_tree(const _Rb_tree<Key, Value, KeyOfValue, Compare, _Alloc> & _x) // _Rb_tree 복사하는거 같은데 이해를 하지못하겠음
                 : _Base(_x.get_allocator()), _m_node_count(0), _m_key_compare(_x._m_key_compare)
                 {
                     if (_x._M_root() == 0) // change 0 == null_ptr ? 
@@ -696,7 +696,7 @@ namespace ft
                     return ft::pair<iterator, bool>(_j, false);
                 }
 
-                iterator insert_unique(iterator _pos, const vlaue_type& _x)// 제대로 된 위치로 들어왔다면 해당 이터레이터부터 insert, 아니라면 root부터 search를 해서 insert 
+                iterator insert_unique(iterator _pos, const value_type& _x)// 제대로 된 위치로 들어왔다면 해당 이터레이터부터 insert, 아니라면 root부터 search를 해서 insert 
                 {
                     if (_pos._m_node == _m_header->_m_left) // leftmost부터 삽입 (begin)
                     {
@@ -786,10 +786,16 @@ namespace ft
                     size_type count(const key_type& _x) const
                     {
                         ft::pair<const_iterator, const_iterator> _p = equal_range(_x);
-                        size_type _n = _p.first - _p.second;
+                        size_type _n = 0;
+                        const_iterator _first = _p.first;
+                        while (_first != _p.second)
+                        {
+                            ++ _first;
+                            ++ _n;
+                        }
                         return _n;
                     }
-                    
+
                     iterator lower_bound(const key_type& _x)// 자신을 포함해서 자신보다 크거나 같은 바로 다음의 key값 iter
                     {
                         _Link_type _p = _m_header;
