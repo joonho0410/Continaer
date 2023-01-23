@@ -144,57 +144,22 @@ int main(int argc, char** argv) {
 
 int main()
 {
-
-	ft::vector<int> alice;
-	alice.push_back(1);
-	alice.push_back(2);
-	alice.push_back(3);
-    ft::vector<int> bob;
-	bob.push_back(7);
-	bob.push_back(8);
-	bob.push_back(9);
-	bob.push_back(10);
-    ft::vector<int> eve(alice);
- 
-    std::cout << std::boolalpha;
- 
-    // Compare non equal containers
-    std::cout << "alice == bob returns " << (alice == bob) << '\n';
-    std::cout << "alice != bob returns " << (alice != bob) << '\n';
-    std::cout << "alice <  bob returns " << (alice < bob) << '\n';
-    std::cout << "alice <= bob returns " << (alice <= bob) << '\n';
-    std::cout << "alice >  bob returns " << (alice > bob) << '\n';
-    std::cout << "alice >= bob returns " << (alice >= bob) << '\n';
- 
-    std::cout << '\n';
- 
-    // // Compare equal containers
-    std::cout << "alice == eve returns " << (alice == eve) << '\n';
-    std::cout << "alice != eve returns " << (alice != eve) << '\n';
-    std::cout << "alice <  eve returns " << (alice < eve) << '\n';
-    std::cout << "alice <= eve returns " << (alice <= eve) << '\n';
-    std::cout << "alice >  eve returns " << (alice > eve) << '\n';
-    std::cout << "alice >= eve returns " << (alice >= eve) << '\n';
-	/*
-    ft::vector<int> temp;
-	ft::vector<int> temp2;
-
-	temp2.push_back(3);
-
-    temp.push_back(1);
-    temp.push_back(2);
-
-	temp.swap(temp2);
+    ft::vector<int> temp(3, 1);
+	ft::vector<int> temp2(temp.begin(), temp.end());
 
 	std::cout << "temp 1" << std::endl;
 	for(auto i = temp.begin(); i != temp.end(); ++i)
 		std::cout << "temp 1 : " << *i << std::endl;
+	std::cout << "============= temp2 ===============" << std::endl;
 	for(auto i = temp2.begin(); i != temp2.end(); ++ i)
 		std::cout << "temp 2 : " << *i << std::endl;
 
     ft::vector<int> ft_vector;
     //ft_vector.insert(ft_vector.begin(), temp.begin(), temp.end());
-    ft_vector.insert(ft_vector.begin(), 2, 2);
+	ft_vector.insert(ft_vector.begin(), 10);
+	ft_vector.insert(ft_vector.begin(), 2, 20);
+	for(auto i = ft_vector.begin(); i != ft_vector.end(); ++ i)
+		std::cout << "ft_vector : " << *i << std::endl;
     ft_vector.erase(ft_vector.begin(), ft_vector.end());
 	ft_vector.push_back(1);
 	//2212 > 1 
@@ -235,5 +200,4 @@ int main()
     for(it2 = std_vector.begin(); it2 != std_vector.end(); ++it2)
         std::cout << "iterator : " << *it2 << std::endl;
     std::cout << *std::find(std_vector.begin(), std_vector.end(), 2) << std::endl;
-	*/
 }

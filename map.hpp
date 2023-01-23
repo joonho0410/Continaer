@@ -10,15 +10,18 @@
 /*                                                                            */
 /* ************************************************************************** */
 
+#pragma once 
+
 #include "Utils.hpp"
+#include "tree.hpp"
 #include "Iterator.hpp"
 
-#pragma once
 namespace ft
 {
     template< class Key, class T, class Compare = std::less<Key>, class Allocator = std::allocator<ft::pair< const Key, T> > >
     class map
     {
+        typedef _Rb_tree<Key, T, const Key, Compare, Allocator>        _Rep_type;
         typedef Key                                                     key_type;
         typedef T                                                       mapped_type;
         typedef typename ft::pair<const Key, T>                         value_type;
@@ -28,13 +31,16 @@ namespace ft
         typedef Allocator                                               allocator_type;
         typedef value_type&                                             reference;
         typedef const value_type&                                       const_referecne;
-        typedef Allocator::pointer                                      pointer;
-        typedef Allocator::const_pointer                                const_pointer;
-        // typedef	typename ft::mapIterator<pointer, vec_type >		iterator;
-		// typedef	typename ft::mpaIterator<const_pointer,vec_type> const_iterator;
+        typedef typename Allocator::pointer                             pointer;
+        typedef typename Allocator::const_pointer                       const_pointer;
+        typedef	typename _Rep_type::iterator                            iterator;
+		typedef	typename _Rep_type::const_iterator                      const_iterator;
 		typedef	typename ft::reverse_iterator<iterator>			    	reverse_iterator;		
 		typedef	typename ft::reverse_iterator<const_iterator>	    	const_reverse_iterator;
+        
 
+        private :
+            _Rep_type _t;
         //////////////////
         // Element access
         /////////////////
@@ -47,8 +53,8 @@ namespace ft
         // iterators
         /////////////////
 
-        iterator				begin(){ return iterator(__begin_);}
-		iterator				end(){ return iterator(__end_);};
+        iterator				begin(){ return iterator(_t.begin());}
+		iterator				end(){ return iterator(_t.end());};
 		reverse_iterator		rbegin(){ return reverse_iterator(begin()); }
 		reverse_iterator		rend(){ return reverse_iterator(end()); }
 
@@ -56,16 +62,16 @@ namespace ft
         // Capacity
         ////////////////
 
-        bool empty() const;
-        size_type size() const;
-        size_type max_size() const;
+        bool empty() const { return _t.empty(); };
+        size_type size() const { return _t.size(); }
+        size_type max_size() const { return _t.max_size(); };
 
         ////////////////
         // Modifiers
         ////////////////
 
-        void clear();
-        ft::pair<iteraotr, bool> insert( const value_type& value );
+        void clear() { _t.clear(); }
+        ft::pair<iteraotr, bool> insert( const value_type& value )
         iterator insert( iterator pos, const value_type& value );
         template< class InputIt >
         void insert( InputIt first, InputIt last );
