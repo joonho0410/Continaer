@@ -11,8 +11,8 @@
 # **************************************************************************** #
 
 CXX = c++
-CPPFLAGS = -g3 -std=c++98
-#-Wall -Wextra -Werror -std=c++98 -g3
+CPPFLAGS = -Wall -Wextra -Werror -std=c++98 -g3
+# -g3
 SRC_DIR = .
 NAME = container
 SRCS = main.cpp

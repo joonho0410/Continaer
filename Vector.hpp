@@ -1,24 +1,26 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   Vector.hpp                                         :+:      :+:    :+:   */
+/*   vector.hpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: junhjeon <junhjeon@student.42seoul.kr>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/12/27 21:11:18 by junhjeon          #+#    #+#             */
-/*   Updated: 2022/12/28 16:46:35 by junhjeon         ###   ########.fr       */
+/*   Updated: 2023/01/26 17:42:46 by junhjeon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
+#pragma once
+
 #include <algorithm>
+#include <stdexcept>
 #include <compare>
 #include <initializer_list>
-#include "Utils.hpp"
-#include "Iterator.hpp"
-#include "map.hpp"
+#include "./Utils.hpp"
+#include "./Iterator.hpp"
+#include "./map.hpp"
 #include <iostream>
 
-#pragma once 
 namespace	ft
 {
 	template < class T, class Allocator = std::allocator<T> >
@@ -36,8 +38,8 @@ namespace	ft
 			typedef	const value_type&									const_reference;	
 			typedef	typename ft::vectorIterator<pointer, vec_type >		iterator;
 			typedef	typename ft::vectorIterator<const_pointer, vec_type > const_iterator;
-			typedef	typename ft::reverse_iterator<iterator>				reverse_iterator;		
-			typedef	typename ft::reverse_iterator<const_iterator>		const_reverse_iterator;
+			typedef	ft::reverse_iterator<iterator>						reverse_iterator;		
+			typedef	ft::reverse_iterator<const_iterator>				const_reverse_iterator;
 
 			typedef std::allocator_traits<allocator_type>				__alloc_traits;
 
@@ -47,7 +49,7 @@ namespace	ft
 			pointer __end_; // back() + 1;
 			pointer __end_cap_; // 할당의 끝.
 		
-		public :
+		protected :
 
 		// begin ~ end  까지 소멸자 호출. pointer version.
 		void _Destroy(pointer _begin, pointer _end)
@@ -57,7 +59,7 @@ namespace	ft
 				alloc.destroy(temp);
 		}
 		// _begin 부터 _end 까지 소멸자를 모두 호출. iterator version.
-		void _Destory(iterator _begin, iterator _end)
+		void _Destroy(iterator _begin, iterator _end)
 		{
 			for (; _begin != _end; ++_begin)
 				alloc.destroy(_begin.base());
@@ -67,7 +69,8 @@ namespace	ft
 		void _Construct(pointer pos,  const T& __x = T()) {alloc.construct(pos, __x);}
 
 		// _begin ~ _end 까지 start에 기존의 값을 소멸시키고 ,새로운 값을 복사한다.
-		pointer copy(iterator _begin, iterator _end, pointer start)
+		template <class Iter>
+		pointer copy(Iter _begin, Iter _end, pointer start)
 		{ 
 			value_type temp;
 			for (; _begin != _end; ++_begin)
@@ -95,7 +98,8 @@ namespace	ft
 		}
 		
 		// _finish 부터 이미 할당된 메모리에 begin ~ end 까지 할당한 후에 마지막 end 포인터를 반환.
-		iterator uninitialized_copy(iterator _begin, iterator _end, pointer _finish)
+		template <class Iter>
+		iterator uninitialized_copy(Iter _begin, Iter _end, pointer _finish)
 		{
 			for(; _begin != _end; ++_begin)
 			{
@@ -157,7 +161,7 @@ namespace	ft
 		void 
 		_M_initialize_aux(_Integer __n, _Integer __value, true_type)
 		{
-			std::cout << "_M_initialze_aus true_type " << std::endl;
+			//std::cout << "_M_initialze_aus true_type " << std::endl;
 			__begin_ = _M_allocate(__n);
 			__end_ = __begin_ + __n;
 			__end_cap_ = __begin_ + __n; 
@@ -169,9 +173,9 @@ namespace	ft
 		void
 		_M_initialize_aux(_InputIterator __first, _InputIterator __last, false_type)
 		{
-			std::cout << "_M_initialze_aus false_type " << std::endl;
-			typedef typename ft::iterator_traits<_InputIterator>::iterator_category _IterCategory;
-			_M_range_initialize(__first, __last, _IterCategory());
+			//std::cout << "_M_initialze_aus false_type " << std::endl;
+			//typedef typename ft::iterator_traits<_InputIterator>::iterator_category _IterCategory;
+			_M_range_initialize(__first, __last, ft::forward_iterator_tag());
 		}
 
 		//_M_range_initialzie
@@ -188,10 +192,10 @@ namespace	ft
 		void _M_range_initialize(_ForwardIterator __first,
 								_ForwardIterator __last, forward_iterator_tag)
 		{
-			size_type __n = (__last - __first);
+			size_type __n = distance(__first, __last);
 			__begin_ = _M_allocate(__n);
 			__end_cap_ = __begin_ + __n;
-			__end_ = std::uninitialized_copy(__first, __last, __begin_);
+			__end_ = uninitialized_copy(__first, __last, __begin_).base();
 		}
 
 		// pos ~ count개를 val을 집어넣는다.
@@ -209,7 +213,8 @@ namespace	ft
 						uninitialized_copy(iterator(__end_ - count), iterator(__end_) , __end_);
 						__end_ += count;
 						std::copy_backward(pos, old_end - count, old_end);
-						for(; pos != pos + count ; ++pos)
+						iterator end = pos + count;
+						for(; pos != end ; ++pos)
 							*pos = val_copy;
 					}
 					else
@@ -253,14 +258,14 @@ namespace	ft
 		template <class _Integer>
 		void _M_insert_dispatch(iterator _pos, _Integer _n, _Integer _val, true_type)
 		{ 
-			std::cout << "this is integer" << std::endl;
+			//std::cout << "this is integer" << std::endl;
 			_M_fill_insert(_pos, static_cast<size_type>(_n), static_cast<T>(_val));
 		}
 
 		template <class _Iter>
 		void _M_insert_dispatch(iterator _pos, _Iter _first, _Iter _last, false_type)
 		{ 
-			std::cout << "this is Iter" << std::endl;
+			//std::cout << "this is Iter" << std::endl;
 			for (; _first != _last; ++_first)
 			{
 				_pos = insert(_pos, *_first);
@@ -268,16 +273,96 @@ namespace	ft
 			}
 		}
 
-		public :
+		template <class _Integer>
+		void _M_assign_dispatch(_Integer _n, _Integer _val, true_type)
+		{
+			_M_fill_assign((size_type) _n, (T) _val);
+		}
+
+		template <class _Iter>
+		void _M_assign_dispatch(_Iter _first, _Iter _last, false_type)
+		{
+			size_type _len = distance(_first, _last);
+
+			if (_len > capacity())
+			{
+				pointer _tmp(_M_allocate_and_copy(_len, _first, _last));
+				_Destroy(__begin_, __end_);
+				_M_deallocate(__begin_, __end_cap_ - __begin_);
+				__begin_ = _tmp;
+				__end_cap_ = __begin_ + _len;
+				__end_ = __begin_ + _len;
+			}
+			else if (size() >= _len)
+			{
+				iterator _new(copy(_first, _last, __begin_));
+				_Destroy(_new, end());
+				__end_ = _new.base();
+			}
+			else //capcity() >= _len > size()
+			{
+				_Iter _mid = _first;
+				for(size_t n = size(); n > 0; --n)
+					++ _mid;
+				copy(_first, _mid, __begin_); //복사되어있는 쪽 까지 삭제하면서 copy;
+				__end_ = uninitialized_copy(_mid, _last, __end_).base();
+			}
+		}
+
+		template <class It>
+		difference_type distance(It _first, It _last)
+		{
+			difference_type _result = 0;
+			while (_first != _last)
+			{
+				++ _first;
+				++ _result;
+			}
+			return _result;
+		}
+
+		protected :
 			//vector 에서도 index 값이 capacity를 넘는지 확인하지않는다. at에서만 확인.
 			void _M_range_check(size_type __n) const
 			{
 				if (__n  >= this -> size())
 				{
-					std::cout << "size error " << std::endl;
-					//exit(1); //throw error;
+					//std::cout << "size error " << std::endl;
+					throw std::out_of_range("range over");
 				}
 			}
+
+			template <class It, class V>
+			void	fill(It _first, It _last, const V& value)
+			{
+				for (; _first != _last; ++_first)
+					*_first = value;
+			}
+
+			template <class It, class Size, class V>
+			It	fill_n(It _first, Size count, V& value)
+			{
+				for (Size i = 0; i < count; i++)
+					*_first++ = value;
+				return _first;
+			}
+			
+			void _M_fill_assign(size_t _n, const value_type& _val)//이해가 필요함;
+			{
+				if (_n > capacity())
+				{
+					vector<T, allocator_type> _tmp(_n, _val, get_allocator());
+					_tmp.swap(*this);
+				}
+				else if (_n > size())
+				{
+					fill(begin(), end(), _val);
+					__end_ = uninitialized_fill_n(iterator(__end_), _n - size(), _val).base();
+				}
+				else
+					erase(fill_n(begin(), _n, _val), end());
+			}
+			
 		
 		/// allocaote && deallocate
 		public :
@@ -288,7 +373,8 @@ namespace	ft
 			void _M_deallocate(value_type* _ptr, size_t _n)
 				{ if(_ptr) alloc.deallocate(_ptr, _n); }
 			// len 만큼 allocate 후에 begin ~ end 까지 할당. return 은 할당의 시작주소.
-			pointer _M_allocate_and_copy(size_t _len, iterator _begin, iterator _end)
+			template< class Iter >
+			pointer _M_allocate_and_copy(size_t _len, Iter _begin, Iter _end)
 			{
 				pointer ret = alloc.allocate(_len);
 				pointer save = ret;
@@ -322,9 +408,10 @@ namespace	ft
 				if (&other != this)
 				{ 
 					alloc = allocator_type();
-					size_type __n = size_type(other.__end_cap_ - other.__begin_);
+					size_type __n = size_type(other.__end_ - other.__begin_);
 					if (__n > capacity())// 할당할 크기 > 현재크기.
 					{	
+						//std::cout << "1" << std::endl;
 						pointer temp = _M_allocate_and_copy(__n, other.begin(), other.end());
 						_Destroy(__begin_, __end_);
 						_M_deallocate(__begin_, __end_cap_ - __begin_);
@@ -333,11 +420,14 @@ namespace	ft
 					}
 					else if (size() >= __n)//현재크기가 충분할 때
 					{
-						iterator __i(copy(other.begin(), other.end(), begin()));
-						_Destroy(__i, end());
+						//std::cout << " 2" << std::endl;
+						iterator save_end = end();
+						iterator __i(copy(other.begin(), other.end(), __begin_));
+						_Destroy(__i, save_end);
 					}
 					else // 사이즈는 작은데 카파시티는 충분할 때, 그대로 카피하면됨.
 					{
+						//std::cout << " 3 " << std::end
 						copy(other.begin(), other.begin() + size(), __begin_);
 						uninitialized_copy(other.begin() + size(), other.end(), __end_);
 					}
@@ -346,8 +436,9 @@ namespace	ft
 				return *this;
 			}
 			explicit vector( const Allocator& alloc ) : alloc(alloc()), __begin_(0), __end_(0), __end_cap_(0){}
-			explicit vector( size_type	count, const T& value, const Allocator& alloc2 = Allocator() )
+			explicit vector( size_type	count, const T& value = T(), const Allocator& alloc2 = Allocator() )
 			{
+				//std::cout << "size_type, value, alloc" << std::endl;
 				(void)alloc2;
 				alloc = Allocator();
 				__begin_ = alloc.allocate(count);
@@ -363,7 +454,7 @@ namespace	ft
 			vector( InputIt first, InputIt last, const Allocator& alloc2 = Allocator() )
 			{
 				(void) alloc2;
-				std::cout << " iter , iter constructor" << std::endl;
+				//std::cout << " iter , iter constructor" << std::endl;
 				typedef typename ft::is_integral< InputIt >::type type;
 				_M_initialize_aux(first, last, type());		
 			}
@@ -392,7 +483,7 @@ namespace	ft
 			{ return allocator_type(); }// ?
 
 			reference operator[](size_type __n){ return *(begin() + __n); }
-			const_reference operator[](size_type __n) const { return *(cbegin() + __n); }
+			const_reference operator[](size_type __n) const { return *(begin() + __n); }
 
 			//range check를 한 후 예외 throw가 필요하다 .	
 			value_type&			at( size_type pos )
@@ -421,14 +512,16 @@ namespace	ft
 		////////////////////////
 
 		public :
-			iterator				begin(){ return iterator(__begin_);}
-			iterator				end(){ return iterator(__end_);};
-			reverse_iterator		rbegin(){ return reverse_iterator(begin()); }
-			const_reverse_iterator	crbegin() const { return const_reverse_iterator(begin()); }
-			reverse_iterator		rend(){ return reverse_iterator(end()); }
-			const_reverse_iterator	crend() const { return const_reverse_iterator(end()); }
-			const_iterator			cbegin() const { return const_iterator (__begin_);}
-			const_iterator			cend() const { return const_iterator (__end_);};
+			iterator				begin()  { return iterator(__begin_); }
+			const_iterator			begin() const { return const_iterator(__begin_); }
+			iterator				end()  { return iterator(__end_); }
+			const_iterator			end() const { return const_iterator(__end_); }
+
+			const_reverse_iterator  rbegin() const { return const_reverse_iterator(end()); }
+			reverse_iterator		rbegin() {  return reverse_iterator(end()); }
+			const_reverse_iterator	rend() const { return const_reverse_iterator(begin()); }
+			reverse_iterator		rend(){  return reverse_iterator(begin()); }
+			
 		
 		////////////////////////
 		//  Capacity
@@ -436,9 +529,9 @@ namespace	ft
 
 		public :
 			bool 		empty() const
-			{ return cbegin() == cend(); }
+			{ return begin() == end(); }
 			size_type 	size() const
-			{ return size_type( cend() - cbegin()); }
+			{ return size_type( end() - begin()); }
 			size_type	max_size() const
 			{ return std::min<size_type>(size_type(-1) / sizeof(T), 
 				std::numeric_limits<difference_type>::max()); }
@@ -457,19 +550,26 @@ namespace	ft
 				}
 			}
 			size_type	capacity() const
-			{ return size_type(const_iterator(__end_cap_) - cbegin()); }
+			{ return size_type(const_iterator(__end_cap_) - begin()); }
 
 
 			////////////////////////
 			//  Modifiers
 			////////////////////////
 
+			void		assign(size_type _n, const T& _val){ _M_fill_assign(_n, _val); }
+			template<class _InputIterator>
+			void		assign(_InputIterator _first, _InputIterator _last)
+			{
+				typedef typename ft::is_integral< _InputIterator >::type _type;
+				_M_assign_dispatch(_first, _last, _type());
+			}
 			void 		clear()
 			{ erase(begin(), end()); }
 
 			iterator 	insert( iterator pos, const T& value) //o
 			{
-				std::cout << "pos , val" << std::endl;
+				//std::cout << "pos , val" << std::endl;
 				size_type __n = pos - begin();
 				if (__end_ != __end_cap_ && pos == end())//eqaul push_back()
 				{
@@ -480,18 +580,22 @@ namespace	ft
 					_M_insert_aux(iterator(pos), value);// need _M_insert_aux;
 				return begin() + __n;
 			}
-
+			
 			iterator 	insert( iterator pos, size_type count, const T& value) //o
 			{
-				std::cout << "insert iter, size_type, value  " << std::endl;
+				//std::cout << "insert iter, size_type, value  " << std::endl;
 				_M_fill_insert(pos, count, value);
 				return pos; //temp
 			}
 
 			template< class InputIt >
-			iterator 	insert( iterator pos, InputIt first, InputIt last) //o
+			typename ft::enable_if< 
+			!ft::is_integral< InputIt >::value, 
+			iterator
+			>::type
+			insert( iterator pos, InputIt first, InputIt last) //o
 			{
-				std::cout << "insert  iter, iter,  iter " << std::endl;
+				//std::cout << "insert  iter, iter,  iter " << std::endl;
 				typedef typename ft::is_integral< InputIt >::type type;
 				_M_insert_dispatch(pos, first, last, type());
 
@@ -500,7 +604,7 @@ namespace	ft
 			
 			iterator 	erase( iterator pos )
 			{
-				std::cout << "erase (iter)" << std::endl; 
+				//std::cout << "erase (iter)" << std::endl; 
 				if (pos + 1 != end())
 					copy(pos + 1, end(), pos.base());
 				else
@@ -575,15 +679,15 @@ namespace	ft
 	operator==(const vector<_Tp, _Alloc>& __x, const vector<_Tp, _Alloc>& __y)
 	{
 	return __x.size() == __y.size() &&
-			ft::equal(__x.cbegin(), __x.cend(), __y.cbegin());
+			ft::equal(__x.begin(), __x.end(), __y.begin());
 	}
 
 	template <class _Tp, class _Alloc>
 	inline bool 
 	operator<(const vector<_Tp, _Alloc>& __x, const vector<_Tp, _Alloc>& __y)
 	{
-	return _M_lexicographical_compare(__x.cbegin(), __x.cend(), 
-									__y.cbegin(), __y.cend());
+	return _M_lexicographical_compare(__x.begin(), __x.end(), 
+									__y.begin(), __y.end());
 	}
 
 	template <class _Tp, class _Alloc>
@@ -615,5 +719,4 @@ namespace	ft
 	operator>=(const vector<_Tp, _Alloc>& __x, const vector<_Tp, _Alloc>& __y) {
 	return !(__x < __y);
 	}
-
 };

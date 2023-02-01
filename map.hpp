@@ -21,14 +21,18 @@ namespace ft
     template< class Key, class T, class Compare = std::less<Key>, class Allocator = std::allocator<ft::pair< const Key, T> > >
     class map
     {
-        public :
+        protected :
+            template < class _key, class _value >
             class keyOfValue
             {
                 public :
-                    Key operator()(const ft::pair<const Key, T>& _x) const
+                    typedef _value      value;
+                public :
+                    keyOfValue(){}
+                    const _key& operator()(const ft::pair<const _key, _value>& _x) const
                     { return _x.first; }
             };
-
+        public :    
             typedef Key                                                     key_type;
             typedef T                                                       mapped_type;
             typedef typename ft::pair<const Key, T>                         value_type;
@@ -40,7 +44,7 @@ namespace ft
             typedef const value_type&                                       const_referecne;
             typedef typename Allocator::pointer                             pointer;
             typedef typename Allocator::const_pointer                       const_pointer;
-            typedef _Rb_tree<Key, value_type, map::keyOfValue, Compare, Allocator>  _Rep_type;
+            typedef _Rb_tree<Key, value_type, map::keyOfValue<Key, T>, Compare, Allocator>  _Rep_type;
             typedef	typename _Rep_type::iterator                            iterator;
             typedef	typename _Rep_type::const_iterator                      const_iterator;
             typedef	typename ft::reverse_iterator<iterator>			    	reverse_iterator;		
@@ -69,25 +73,29 @@ namespace ft
             map( InputIt first, InputIt last,
                 const Compare& comp = Compare(),
                 const Allocator& alloc = Allocator() ) : _t(Compare(), allocator_type())//?
-            { _t.insert_unique(first, last); }
+            { (void)comp;(void)alloc; _t.insert_unique(first, last); }
 
-            map<Key, T, Compare, Allocator>&
-            opreator = map(const map<Key, T, Compare, Allocator>& _x) { _t = _x._t; return *this}
+            ft::map<Key, T, Compare, Allocator>&
+            operator=(const ft::map< Key, T, Compare, Allocator >& _x){ _t = _x._t; return *this; }
+
         //////////////////
         // Element access
         /////////////////
         public :
             T&  at( const Key& key)
             {
-
+                (void) key;
             }
-            const T& at( const Key& key) const;
+            const T& at( const Key& key) const
+            {
+                (void) key;
+            }
             T& operator[] (const Key& key)
             {
                 iterator it = _t.lower_bound(key);
                 if (it == end() || key_comp()(key, (*it).first))
-                    it = insert(_i, value_type(key, T()));
-                return (*it.second);
+                    it = insert(it, value_type(key, T()));
+                return (it -> second);
             }
 
         /////////////////
@@ -95,11 +103,13 @@ namespace ft
         /////////////////
 
         iterator				begin(){ return iterator(_t.begin());}
+        const_iterator          begin() const { return const_iterator(_t.begin()); }
 		iterator				end(){ return iterator(_t.end());};
-		reverse_iterator		rbegin(){ return reverse_iterator(begin()); }
-		reverse_iterator		rend(){ return reverse_iterator(end()); }
+        const_iterator          end() const { return const_iterator(_t.end()); }
+		reverse_iterator		rbegin(){ return reverse_iterator(end()); }
+		reverse_iterator		rend(){ return reverse_iterator(begin()); }
 
-        ////////////////
+       ////////////////
         // Capacity
         ////////////////
 
@@ -112,8 +122,8 @@ namespace ft
         ////////////////
 
         void clear() { _t.clear(); }
-        ft::pair<iterator, bool> insert( const value_type& value ) { _t.insert_unique(value);}
-        iterator insert( iterator pos, const value_type& value ) { _t.insert_unique(pos, value); }
+        ft::pair<iterator, bool> insert( const value_type& value ) { return _t.insert_unique(value); }
+        iterator insert( iterator pos, const value_type& value ) { return _t.insert_unique(pos, value); }
         template< class InputIt >
         void insert( InputIt first, InputIt last ){ _t.insert_unique(first, last); }
         void erase( iterator pos ) { _t.erase(pos); }
@@ -125,7 +135,7 @@ namespace ft
         // LookUp
         ////////////////
 
-        size_type count( const Key& key ) const{ return _t.count(); }
+        size_type count( const Key& key ) const{ return _t.count(key); }
         iterator find( const Key& key ) { return _t.find(key); }
         const_iterator find( const Key& key ) const { return _t.find(key); }
         ft::pair<iterator, iterator> equal_range( const Key& key ) { return _t.equal_range(key); }
@@ -140,7 +150,7 @@ namespace ft
         ///////////////
 
         key_compare key_comp() const { return _t.key_comp(); }
-        ft::map::value_compare value_comp() const { return value_compare(_t.key_comp()); }
+        value_compare value_comp() const { return value_compare(_t.key_comp()); }
 
         // friend 선언의 차이점?
         template <class _K1, class _T1, class _C1, class _A1>

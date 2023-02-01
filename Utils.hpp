@@ -9,11 +9,10 @@
 /*   Updated: 2022/12/28 16:46:35 by junhjeon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
-
+#pragma once
 #include <compare>
 #include <initializer_list>
 
-#pragma once
 namespace	ft
 {
 	//////////////////////////////////////////////////////
@@ -93,7 +92,7 @@ namespace	ft
 	//////////////////////////////////////////////////////
 	/////           pair begin			 	         /////
 	//////////////////////////////////////////////////////
-
+	
 	template<class _T1,class _T2>
 	struct pair
 	{
@@ -104,10 +103,10 @@ namespace	ft
 		_T2 second;
 
 		pair() : first(), second() {}
-		pair( const _T1& x, const _T2& y ) : first(x), second(y){}
+		pair(const first_type& a, const second_type& b) : first(a), second(b) {}
 		template< class U1, class U2 >
 		pair( const pair<U1, U2>& p ) : first(p.first), second(p.second){}
-		pair( const pair& p ) {*this = p;}
+		//pair( const pair& p ) {*this = p;}
 		
 		pair& operator=(pair const& __p) {
         first = __p.first;
@@ -115,6 +114,55 @@ namespace	ft
         return *this;
     	}
 	};
+
+	template <class _T1, class _T2>
+	inline 
+	bool
+	operator==(const ft::pair<_T1,_T2>& __x, const ft::pair<_T1,_T2>& __y)
+	{
+		return __x.first == __y.first && __x.second == __y.second;
+	}
+
+	template <class _T1, class _T2>
+	inline 
+	bool
+	operator!=(const ft::pair<_T1,_T2>& __x, const ft::pair<_T1,_T2>& __y)
+	{
+		return !(__x == __y);
+	}
+
+	template <class _T1, class _T2>
+	inline 
+	bool
+	operator< (const ft::pair<_T1,_T2>& __x, const ft::pair<_T1,_T2>& __y)
+	{
+		return __x.first < __y.first || (!(__y.first < __x.first) && __x.second < __y.second);
+	}
+
+	template <class _T1, class _T2>
+	inline 
+	bool
+	operator> (const ft::pair<_T1,_T2>& __x, const ft::pair<_T1,_T2>& __y)
+	{
+		return __y < __x;
+	}
+
+	template <class _T1, class _T2>
+	inline 
+	bool
+	operator>=(const ft::pair<_T1,_T2>& __x, const ft::pair<_T1,_T2>& __y)
+	{
+		return !(__x < __y);
+	}
+
+	template <class _T1, class _T2>
+	inline 
+	bool
+	operator<=(const ft::pair<_T1,_T2>& __x, const ft::pair<_T1,_T2>& __y)
+	{
+		return !(__y < __x);
+	}
+
 
 	//////////////////////////////////////////////////////
 	/////           make_pair begin			         /////
@@ -124,5 +172,19 @@ namespace	ft
 	ft::pair<T1, T2> make_pair( T1 t, T2 u )
 	{
 		return ft::pair< T1, T2 >(t, u);
+	}
+
+	template<class InputIt1, class InputIt2>
+	bool lexicographical_compare(InputIt1 first1, InputIt1 last1,
+								InputIt2 first2, InputIt2 last2)
+	{
+		for (; (first1 != last1) && (first2 != last2); ++first1, (void) ++first2)
+		{
+			if (*first1 < *first2)
+				return true;
+			if (*first2 < *first1)
+				return false;
+		}
+		return (first1 == last1) && (first2 != last2);
 	}
 };
